@@ -22,6 +22,8 @@ namespace AStar
 
         Vector3 clickStartPos;
         Vector3 clickEndPos;
+        List<Grid> tempNeighborGrids;
+        List<Vector3[]> tempNeighborSides;
         private void Update()
         {
             if (Input.GetMouseButtonDown(0))
@@ -30,22 +32,40 @@ namespace AStar
                 RaycastHit hit;
                 if (Physics.Raycast(ray, out hit))
                 {
-                    if (PosIsInOB(hit.point))
+                    #region debug显示选中的格子相邻信息
+                    for (int i = 0; i < grids.Length; i++)
                     {
-                        return;
+                        for (int j = 0; j < grids[i].Length; j++)
+                        {
+                            Grid g = grids[i][j];
+                            if (g.bounds.Contains(new Vector3(hit.point.x, 0, hit.point.z)))
+                            {
+                                tempNeighborGrids = g.neighborGrids;
+                                tempNeighborSides = g.neighborSides;
+                                return;
+                            }
+                        }
                     }
-                    if (!selectStart)
-                    {
-                        clickStartPos = hit.point;
-                        selectStart = true;
-                    }
-                    else
-                    {
-                        clickEndPos = hit.point;
-                        selectStart = false;
-                        AddMoveActor(clickStartPos, clickEndPos);
-                        AddMoveActor(clickEndPos, clickStartPos);
-                    }
+                    #endregion
+
+                    #region 选择起点、终点
+                    //if (PosIsInOB(hit.point))
+                    //{
+                    //    return;
+                    //}
+                    //if (!selectStart)
+                    //{
+                    //    clickStartPos = hit.point;
+                    //    selectStart = true;
+                    //}
+                    //else
+                    //{
+                    //    clickEndPos = hit.point;
+                    //    selectStart = false;
+                    //    AddMoveActor(clickStartPos, clickEndPos);
+                    //    AddMoveActor(clickEndPos, clickStartPos);
+                    //}
+                    #endregion
                 }
             }
         }
@@ -118,6 +138,7 @@ namespace AStar
             int gridCountZ = (int)(mapSize.z / gridSize.z);
             Vector3 gridStartPos = new Vector3(-mapSize.x / 2 + gridSize.x / 2, 0, -mapSize.z / 2 + gridSize.z / 2);
 
+            // 初始化每个格子
             grids = new Grid[gridCountX][];
             for (int i = 0; i < gridCountX; i++)
             {
@@ -125,14 +146,37 @@ namespace AStar
                 for (int j = 0; j < gridCountZ; j++)
                 {
                     Vector3 pos = gridStartPos + new Vector3(gridSize.x * i, 0, gridSize.z * j);
-                    Grid grid = new Grid(pos, gridSize);
+                    Vector2Int idx = new Vector2Int(i, j);
+                    Grid grid = new Grid(idx, pos, gridSize);
                     grid.walkAble = !GridIsInOB(grid);
-                    grid.i = i;
-                    grid.j = j;
                     grids[i][j] = grid;
                 }
             }
 
+            // 计算每个各自的周边格子
+            for (int i = 0; i < gridCountX; i++)
+            {
+                for (int j = 0; j < gridCountZ; j++)
+                {
+                    Grid curGrid = grids[i][j];
+                    Vector2Int curGridId = curGrid.idx;
+                    List<Grid> neighbors = new List<Grid>();
+                    Vector2Int[] neighborsIds = new Vector2Int[] { // 逆时针 上左下右
+                        curGridId + new Vector2Int(0, 1),
+                        curGridId + new Vector2Int(-1, 0),
+                        curGridId + new Vector2Int(0, -1),
+                        curGridId + new Vector2Int(1, 0),
+                    };
+                    for (int ii = 0; ii < neighborsIds.Length; ii++)
+                    {
+                        Vector2Int _idx = neighborsIds[ii];
+                        if (_idx.x >= 0 && _idx.x < gridCountX && _idx.y >= 0 && _idx.y < gridCountZ) {
+                            neighbors.Add(grids[_idx.x][_idx.y]);
+                        }
+                    }
+                    curGrid.GenerateNeighbors(neighbors);
+                }
+            }
         }
 
         private void OnDrawGizmos()
@@ -154,6 +198,22 @@ namespace AStar
                 }
             }
 
+            if (tempNeighborGrids != null) {
+                for (int i = 0; i < tempNeighborGrids.Count; i++)
+                {
+                    Gizmos.color = new Color(0, 0, 1, 0.6f);
+                    Gizmos.DrawCube(tempNeighborGrids[i].bounds.center, tempNeighborGrids[i].bounds.size);
+                }
+                for (int i = 0; i < tempNeighborSides.Count; i++)
+                {
+                    float a = (float)i / tempNeighborSides.Count;
+                    float b = (float)i / tempNeighborGrids.Count;
+                    Gizmos.color = new Color(a, b, 0, 0.5f);
+                    Vector3[] posArr = tempNeighborSides[i];
+                    Gizmos.DrawSphere(posArr[0], 2f);
+                    Gizmos.DrawSphere(posArr[1], 2f);
+                }
+            }
         }
     }
 }

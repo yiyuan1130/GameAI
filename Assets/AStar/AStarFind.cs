@@ -6,21 +6,67 @@ namespace AStar
     public class Grid
     {
         public Grid preGrid;
+        public Vector2Int idx;
+        public List<Grid> neighborGrids; // 相邻格子 (逆时针存储 上左下右)
+        public List<Vector3[]> neighborSides; // 相邻格子的公用边
+        public List<Vector3> vertices; // 逆时针 0左上 1左下 2右下 3右上
         public Bounds bounds;
         public bool walkAble = false;
         public int G;
         public int H;
         public int F;
-        public int i;
-        public int j;
-        public Grid(Vector3 pos, Vector3 size, bool walkAble = true)
+        public Grid(Vector2Int idx, Vector3 pos, Vector3 size, bool walkAble = true)
         {
+            this.idx = idx;
             this.preGrid = null;
             this.walkAble = walkAble;
             this.bounds = new Bounds(pos, size);
             this.G = 0;
             this.H = 0;
             this.F = 99999;
+            this.GenerateVertices();
+        }
+
+        public void GenerateNeighbors(List<Grid> neighborGrids)
+        {
+            this.neighborGrids = neighborGrids;
+            this.neighborSides = new List<Vector3[]>();
+            for (int i = 0; i < this.neighborGrids.Count; i++)
+            {
+                Vector3[] side = new Vector3[2];
+                Grid curNeighborGrid = this.neighborGrids[i];
+                Vector2Int idxOffset = curNeighborGrid.idx - this.idx;
+                if (idxOffset.x == 0 && idxOffset.y == 1) {
+                    // 上
+                    side[0] = this.vertices[0];
+                    side[1] = this.vertices[3];
+                }
+                else if (idxOffset.x == 1 && idxOffset.y == 0) {
+                    // 右
+                    side[0] = this.vertices[2];
+                    side[1] = this.vertices[3];
+                }
+                else if (idxOffset.x == 0 && idxOffset.y == -1) {
+                    // 下
+                    side[0] = this.vertices[1];
+                    side[1] = this.vertices[2];
+                }
+                else if (idxOffset.x == -1 && idxOffset.y == 0) {
+                    // 左
+                    side[0] = this.vertices[0];
+                    side[1] = this.vertices[1];
+                }
+                neighborSides.Add(side);
+            }
+        }
+
+        void GenerateVertices() {
+            float halfSize = this.bounds.size.x * 0.5f;
+            vertices = new List<Vector3>();
+            vertices.Add(this.bounds.center + new Vector3(-halfSize, 0, halfSize)); // 左上
+            vertices.Add(this.bounds.center + new Vector3(-halfSize, 0, -halfSize)); // 左下
+            vertices.Add(this.bounds.center + new Vector3(halfSize, 0, -halfSize)); // 右下
+            vertices.Add(this.bounds.center + new Vector3(halfSize, 0, halfSize)); // 右上
         }
 
         public void Reset()
@@ -128,7 +174,7 @@ namespace AStar
             closeList = new List<Grid>();
             startGrid.preGrid = null;
             startGrid.G = 0;
-            startGrid.H = Mathf.Abs(endGrid.i - startGrid.i) + Mathf.Abs(endGrid.j - startGrid.j);
+            startGrid.H = Mathf.Abs(endGrid.idx.x - startGrid.idx.x) + Mathf.Abs(endGrid.idx.y - startGrid.idx.y);
             startGrid.F = startGrid.G + startGrid.H;
             openList.Add(startGrid);
             curGrid = startGrid;
@@ -139,7 +185,7 @@ namespace AStar
                 curGrid = openList[0];
                 openList.RemoveAt(0);
                 closeList.Add(curGrid);
-                GetAroundGrid();
+                UpdateNeighborGrids();
                 count++;
             }
         }
@@ -159,48 +205,31 @@ namespace AStar
             });
         }
 
-        void GetAroundGrid()
+        void UpdateNeighborGrids()
         {
-            Vector2Int[] idOffsetArr = new Vector2Int[] {
-            new Vector2Int(0, 1),
-            //new Vector2Int(1, 1),
-            new Vector2Int(1, 0),
-            //new Vector2Int(1, -1),
-            new Vector2Int(0, -1),
-            //new Vector2Int(-1, -1),
-            new Vector2Int(-1, 0),
-            //new Vector2Int(-1, 1),
-        };
-
-            for (int i = 0; i < idOffsetArr.Length; i++)
+            for (int i = 0; i < curGrid.neighborGrids.Count; i++)
             {
-                Vector2Int idOffset = idOffsetArr[i];
-                int tarI = curGrid.i + idOffset.x;
-                int tarJ = curGrid.j + idOffset.y;
-                if (tarI >= 0 && tarI <= maxI && tarJ >= 0 && tarJ <= maxJ)
+                Grid grid = curGrid.neighborGrids[i];
+                if (!grid.walkAble)
                 {
-                    Grid grid = grids[tarI][tarJ];
-                    if (!grid.walkAble)
+                    closeList.Add(grid);
+                }
+                else
+                {
+                    if (!closeList.Contains(grid))
                     {
-                        closeList.Add(grid);
-                    }
-                    else
-                    {
-                        if (!closeList.Contains(grid))
+                        if (grid != null)
                         {
-                            if (grid != null)
+                            openList.Add(grid);
+                            int g = curGrid.G + 1;
+                            int h = Mathf.Abs(endGrid.idx.x - grid.idx.x) + Mathf.Abs(endGrid.idx.y - grid.idx.y);
+                            int f = g + h;
+                            if (grid.F > f)
                             {
-                                openList.Add(grid);
-                                int g = curGrid.G + 1;
-                                int h = Mathf.Abs(endGrid.i - grid.i) + Mathf.Abs(endGrid.j - grid.j);
-                                int f = g + h;
-                                if (grid.F > f)
-                                {
-                                    grid.preGrid = curGrid;
-                                    grid.G = g;
-                                    grid.H = h;
-                                    grid.F = f;
-                                }
+                                grid.preGrid = curGrid;
+                                grid.G = g;
+                                grid.H = h;
+                                grid.F = f;
                             }
                         }
                     }
