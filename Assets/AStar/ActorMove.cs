@@ -28,11 +28,11 @@ namespace AStar
             pathList = new List<Vector3>();
             this.aStarFind = aStarFind;
             pathList = aStarFind.GetPath(startPos, endPos);
-            if (pathList != null && pathList.Count > 0)
-            {
-                pathList.Insert(0, startPos);
-                pathList.Add(endPos);
-            }
+            //if (pathList != null && pathList.Count > 0)
+            //{
+            //    pathList.Insert(0, startPos);
+            //    pathList.Add(endPos);
+            //}
             //DrawPathLine();
             isMoving = true;
         }
@@ -75,7 +75,7 @@ namespace AStar
                     transform.forward = moveDir;
                     transform.position += transform.forward * speed * Time.deltaTime;
                     float dis = Vector3.Distance(transform.position, tarPos);
-                    if (dis <= 0.05f)
+                    if (dis <= 0.1f)
                     {
                         curIdx++;
                     }
@@ -133,16 +133,31 @@ namespace AStar
         {
             if (pathList != null)
             {
-                for (int i = curIdx; i < pathList.Count; i++)
+                for (int i = 0; i < pathList.Count; i++)
                 {
-                    Gizmos.color = Color.green;
-                    Gizmos.DrawSphere(pathList[i], 0.5f);
+                    if (i == 0)
+                    {
+                        Gizmos.color = Color.green;
+                    }
+                    else if (i == pathList.Count - 1)
+                    {
+                        Gizmos.color = Color.red;
+                    }
+                    else {
+                        Gizmos.color = Color.blue;
+                    }
+                    Gizmos.DrawSphere(pathList[i], 1.5f);
+
+                    if (i < pathList.Count - 1) {
+                        Gizmos.color = Color.black;
+                        Gizmos.DrawLine(pathList[i], pathList[i + 1]);
+                    }
                 }
             }
-            Gizmos.color = Color.blue;
-            Gizmos.DrawSphere(startPos, 0.5f);
-            Gizmos.color = Color.red;
-            Gizmos.DrawSphere(endPos, 0.5f);
+            //Gizmos.color = Color.blue;
+            //Gizmos.DrawSphere(startPos, 0.5f);
+            //Gizmos.color = Color.red;
+            //Gizmos.DrawSphere(endPos, 0.5f);
         }
     }
 }
