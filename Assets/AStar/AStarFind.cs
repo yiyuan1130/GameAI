@@ -152,6 +152,18 @@ namespace AStar
                 curGrid = curGrid.preGrid;
             }
             reslutGrids.Insert(0, startGrid);
+
+            #region 格子中心路径点
+            //pathList = new List<Vector3>();
+            //pathList.Add(startPos);
+            //for (int i = 0; i < reslutGrids.Count; i++)
+            //{
+            //    pathList.Add(reslutGrids[i].bounds.center);
+            //}
+            //pathList.Add(endPos);
+            //return pathList;
+            #endregion
+
             GameMain.GetInstance().SetGridList(reslutGrids);
             List<Vector3[]> sides = new List<Vector3[]>();
             for (int i = 0; i < reslutGrids.Count; i++)
