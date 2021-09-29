@@ -28,13 +28,9 @@ namespace GroupBehaviour {
             if (!isValid)
                 return;
             Vector3 f_velocity = FollowMouse(deltaTime);
-            //f_velocity = Vector3.Lerp(velocity, f_velocity, Time.deltaTime);
             Vector3 s_velocity = Separation(deltaTime);
-            //s_velocity = Vector3.Lerp(velocity, s_velocity, Time.deltaTime);
             Vector3 a_velocity = Alignment(deltaTime);
-            //a_velocity = Vector3.Lerp(velocity, a_velocity, Time.deltaTime);
             Vector3 c_velocity = Cohesion(deltaTime);
-            //c_velocity = Vector3.Lerp(velocity, c_velocity, Time.deltaTime);
 
             velocity = (f_velocity + s_velocity + a_velocity + c_velocity) / 4f;
 
@@ -55,7 +51,6 @@ namespace GroupBehaviour {
             {
                 Vector3 tarPos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 10f));
                 Vector3 tarVelocity = new Vector3(tarPos.x, 0, tarPos.z) - transform.position;
-                //Vector3 dir = tarVelocity.normalized;
                 Vector3 dir = Vector3.Lerp(velocity, tarVelocity.normalized, 0.5f);
                 return dir;
             }
@@ -83,9 +78,8 @@ namespace GroupBehaviour {
                 }
             }
             if (count > 0) {
-                Vector3 avgVelocity = sperationVelocity / count;// * GroupParams.spearationRate;
+                Vector3 avgVelocity = sperationVelocity / count;
                 return Vector3.Lerp(velocity, avgVelocity, GroupParams.spearationRate);
-                //return avgVelocity;
             }
 
             return velocity;
@@ -109,7 +103,6 @@ namespace GroupBehaviour {
             if (count > 0) { 
                 Vector3 avgVelocity = sumVelocity / count;
                 return Vector3.Lerp(velocity, avgVelocity, GroupParams.alignmentRate);
-                //return avgVelocity;
             }
             return velocity;
         }
@@ -131,10 +124,8 @@ namespace GroupBehaviour {
             if (count > 0)
             {
                 Vector3 centerPos = sumPos / count;
-                Vector3 tarVelocity = (centerPos - this.position);//.normalized * GroupParams.cohesionRate;
+                Vector3 tarVelocity = (centerPos - this.position);
                 return Vector3.Lerp(velocity, tarVelocity, GroupParams.cohesionRate);
-                //return tarVelocity;
-                //return dir;
             }
             return velocity;
         }
