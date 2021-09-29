@@ -365,7 +365,9 @@ namespace AStar
                     {
                         if (grid != null)
                         {
-                            openList.Add(grid);
+                            if (!openList.Contains(grid)) { 
+                                openList.Add(grid);
+                            }
                             int g = curGrid.G + 1;
                             int h = Mathf.Abs(endGrid.idx.x - grid.idx.x) + Mathf.Abs(endGrid.idx.y - grid.idx.y);
                             int f = g + h;

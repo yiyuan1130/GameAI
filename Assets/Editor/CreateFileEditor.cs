@@ -44,4 +44,25 @@ public class CreateFileEditor : Editor
         var asset = AssetDatabase.LoadAssetAtPath(newFilePath, typeof(Object));
         Selection.activeObject = asset;
     }
+
+    //[MenuItem("Assets/Create/CommonFolder")]
+    //static void CreateCommonFolder() {
+    //    var assetPath = Application.dataPath;
+    //    Debug.Log(assetPath);
+    //    string commonFolderPath = assetPath + "NewFolder";
+    //    Directory.CreateDirectory(assetPath);
+    //    string materials = commonFolderPath + "/Materials";
+    //    string prefabs = commonFolderPath + "/Prefabs";
+    //    string scenes = commonFolderPath + "/Scenes";
+    //    string scripts = commonFolderPath + "/Scripts";
+    //    Directory.CreateDirectory(materials);
+    //    Directory.CreateDirectory(prefabs);
+    //    Directory.CreateDirectory(scenes);
+    //    Directory.CreateDirectory(scripts);
+
+    //    string readmePath = commonFolderPath + "/Readme.txt";
+    //    File.WriteAllText(readmePath, "-- test", Encoding.UTF8);
+
+    //    AssetDatabase.Refresh();
+    //}
 }
