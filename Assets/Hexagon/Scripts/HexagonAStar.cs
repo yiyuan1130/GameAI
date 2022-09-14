@@ -25,6 +25,8 @@ namespace Hexagon {
     public class HexagonAStarFind
     {
         Dictionary<string, Hexagon> hexagonDict;
+        List<Hexagon> openList = new List<Hexagon>();
+        List<Hexagon> closeList = new List<Hexagon>();
         public HexagonAStarFind(Dictionary<string, Hexagon> hexagonDict)
         {
             this.hexagonDict = hexagonDict;
@@ -62,14 +64,14 @@ namespace Hexagon {
             return hexagon;
         }
 
-        List<Hexagon> openList = new List<Hexagon>();
-        List<Hexagon> closeList = new List<Hexagon>();
-        Hexagon curHexagon;
-        public void FindPath(Vector3 startPos, Vector3 endPos) {
+        public List<Hexagon> FindPath(Vector3 startPos, Vector3 endPos) {
+            List<Hexagon> hexagonList = new List<Hexagon>();
+            Hexagon curHexagon;
+
             Hexagon startHexagon = GetHexagonByPosition(startPos);
             Hexagon endHexagon = GetHexagonByPosition(endPos);
             if (startHexagon == null || endHexagon == null) {
-                return;
+                return hexagonList;
             }
             Debug.Log("StartHexagon => " + startHexagon.hexpos.ToString());
             Debug.Log("EndHexagon => " + endHexagon.hexpos.ToString());
@@ -91,6 +93,7 @@ namespace Hexagon {
                     }
                 });
                 curHexagon = openList[0];
+                openList.RemoveAt(0);
                 closeList.Add(curHexagon);
                 if (curHexagon == endHexagon) {
                     break;
@@ -102,7 +105,7 @@ namespace Hexagon {
                     {
                         closeList.Add(subHexagon);
                     }
-                    else {
+                    if (!closeList.Contains(subHexagon)) { 
                         subHexagon.g = curHexagon.g + 1;
                         subHexagon.h = Vector3.Distance(subHexagon.xypos, endHexagon.xypos);
                         subHexagon.f = subHexagon.g + subHexagon.h;
@@ -115,9 +118,18 @@ namespace Hexagon {
             Hexagon curShowHexagon = endHexagon;
             while (curShowHexagon != null)
             {
+                hexagonList.Add(curShowHexagon);
                 Debug.Log(curShowHexagon.hexpos.ToString());
                 curShowHexagon = curShowHexagon.preHexagon;
             }
+            hexagonList.Reverse();
+            return hexagonList;
+        }
+
+        public void Clear() {
+            hexagonDict.Clear();
+            openList.Clear();
+            closeList.Clear();
         }
     }
 }

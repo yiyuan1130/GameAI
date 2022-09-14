@@ -42,6 +42,10 @@ namespace Hexagon {
             }
         }
 
+        public bool IsSelect() {
+            return isSelect;
+        }
+
         public void SetWall() {
             if (isSelect) {
                 return;
